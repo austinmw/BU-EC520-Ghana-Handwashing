@@ -1,7 +1,7 @@
 function SoapROI_GUI(hObject, eventdata, handles)
  clc; clear all; 
 
- v = vision.VideoFileReader('VID0001.AVI','ImageColorSpace', 'RGB');
+ v = VideoReader('vid-out.AVI');
 [hFig, hAxes] = createFigureAndAxes();
 
 % Add buttons to control video playback.
@@ -89,8 +89,10 @@ insertButtons(hFig, hAxes, v);
             if isTextStart
                % Two cases: (1) starting first time, or (2) restarting 
                % Start from first frame
-               if isDone(v)
-                  reset(v);
+               %if isDone(v)
+               if v.hasFrame
+                   readFrame(v);
+                  %reset(v);
                end
             end
             if (isTextStart || isTextCont)
@@ -100,9 +102,10 @@ insertButtons(hFig, hAxes, v);
             end
 %             shapeInserter = vision.ShapeInserter;
            
-            while strcmp(hObject.String, 'Pause') && ~isDone(v)
+            %while strcmp(hObject.String, 'Pause') && ~isDone(v)
+            while strcmp(hObject.String, 'Pause') && v.hasFrame
                 pos = [314 237 148 141];
-                frame = step(v);
+                frame = readFrame(v);
 
                 %rect = shapeInserter(frame,pos);
                
@@ -136,10 +139,24 @@ insertButtons(hFig, hAxes, v);
             
             % When video reaches the end of file, display "Start" on the
             % play button.
-            if isDone(v)
+            %if isDone(v)
+            if ~v.hasFrame
                %rect = getrect 
                rect = imrect()
-               pos = getPosition(rect)
+               pos = reshape(getPosition(rect),1,length(getPosition(rect)))
+               
+               % Read file name, file date, and position of rectangle to text file
+               name = string(v.name);
+               file = dir(v.name);
+               date = string(file.date);
+               
+               posFile = fopen('RectPosition.txt','at');
+               fprintf(posFile,'%s ',name);
+               fprintf(posFile,'%s ',date);
+               fprintf(posFile,'%d ',pos);
+               fprintf(posFile,'\n');
+               fclose(posFile);
+        
                hObject.String = 'Start';
             end
             
@@ -155,7 +172,8 @@ insertButtons(hFig, hAxes, v);
     function exitCallback(~,~,v,hFig)
         
         % Close the video file
-        release(v); 
+        %release(v); 
+        %v.close();
         % Close the figure window
         close(hFig);
     end
