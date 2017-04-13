@@ -1,7 +1,7 @@
 function SoapROI_GUI(hObject, eventdata, handles)
  clc; clear all; 
 
- v = VideoReader('vid-out.AVI');
+ v = VideoReader('vid-out2.AVI');
 [hFig, hAxes] = createFigureAndAxes();
 
 % Add buttons to control video playback.
@@ -92,6 +92,7 @@ insertButtons(hFig, hAxes, v);
                %if isDone(v)
                if v.hasFrame
                    readFrame(v);
+                   hObject.String = 'Pause';
                   %reset(v);
                end
             end
@@ -106,10 +107,19 @@ insertButtons(hFig, hAxes, v);
             while strcmp(hObject.String, 'Pause') && v.hasFrame
                 pos = [314 237 148 141];
                 frame = readFrame(v);
-
+                
                 %rect = shapeInserter(frame,pos);
-               
                 showFrameOnAxis(hAxes.axis1, frame);
+%                 roi = imrect();
+%                 wait(hAxes.axis1);
+                %createrectangle();
+              
+%                 waitforbuttonpress
+%                 point1 = get(gcf,'CurrentPoint') % button down detected
+%                 rect = [314 237 148 141]
+%                 [r2] = dragrect(rect)
+                
+                
                 % rect = rectangle('Position',pos,'Parent',hAxes.axis1,'BusyAction','cancel');
                             
                 %while strcmp(hObject.String, 'Pause') && ~isDone(v)
@@ -143,12 +153,16 @@ insertButtons(hFig, hAxes, v);
             if ~v.hasFrame
                %rect = getrect 
                rect = imrect()
-               pos = reshape(getPosition(rect),1,length(getPosition(rect)))
-               
+               % won't save position until you double click the rectangle
+               wait(rect);  
+               pos = reshape(single(getPosition(rect)),1,length(getPosition(rect)))
+        
                % Read file name, file date, and position of rectangle to text file
                name = string(v.name);
                file = dir(v.name);
-               date = string(file.date);
+               [Y, M, D, ~, ~, ~] = datevec(file.datenum);
+
+               date = string([M,D,Y]);
                
                posFile = fopen('RectPosition.txt','at');
                fprintf(posFile,'%s ',name);
@@ -156,7 +170,8 @@ insertButtons(hFig, hAxes, v);
                fprintf(posFile,'%d ',pos);
                fprintf(posFile,'\n');
                fclose(posFile);
-        
+               
+               delete(rect);
                hObject.String = 'Start';
             end
             
