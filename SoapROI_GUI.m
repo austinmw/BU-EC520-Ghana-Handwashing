@@ -1,24 +1,35 @@
 function SoapROI_GUI(hObject, eventdata, handles)
- clc; clear all; 
+ %clc; clear all; 
 
- v = VideoReader('vid-out2.AVI');
+%dinfo = dir('/Users/caitycallahan/Documents/EC520-Digital Image Processing/Ghana/3_examples/*.avi');
+dinfo = dir('/Volumes/MyPassportforMac/3_combined_5_schools/*.avi');
+fileName = {dinfo.name};
+%%
+%for i = 1:2     %length(fileName)  
+global i 
+
+handles.Counter = 1;
+    currentvideo = fileName{handles.Counter};
+%currentvideo ='/Users/caitycallahan/Documents/EC520-Digital Image Processing/Ghana/3_examples/Agona Nkran Islamic_feb_10.avi';
+
+%currentvideo = 'Agona Nkran Islamic_feb_10.avi';
+%currentvideo = '/Hand_washing_videos/VID0002.AVI';
+v = VideoReader(currentvideo);
+
+%v = VideoReader('vid-out2.AVI');
 [hFig, hAxes] = createFigureAndAxes();
 
 % Add buttons to control video playback.
-insertButtons(hFig, hAxes, v);
+insertButtons(hFig, hAxes, v,currentvideo,i);
+           
+%next = set(hFig,handles.PBNext,'Callback', {@nextCallback,v,hAxes,hFig,i});
+%background=set(handles.PBBackground,'Callback', {@backgroundCallback,v,hAxes,hFig,currentvideo});
 
 % playCallback(findobj('tag','PBButton123'),[],v,hAxes);
-    
-    %%
-% Create Figure 
-   % hf = figure;
-% Resize figure based on the video's width and height
-    %set(hf);
-            % set(hf,'position',[150 150 vidWidth vidHeight]);
-% Playback movie once at the video's frame rate of 20 frames per second
-  %  movie(hf,mov,1,20);        % 20 = FrameRate
-            % movie(hf, mov, 1);
-
+%uiwait(handles.backgroundCallback)
+% uiwait()
+% end
+guidata(hObject, handles);
 %% Create Figure, Axes, Titles
 % Create a figure window and two axes with titles to display two videos.
     function [hFig, hAxes] = createFigureAndAxes()
@@ -68,7 +79,7 @@ insertButtons(hFig, hAxes, v);
             
 %% Insert Buttons
 % Insert buttons to play, pause the videos.
-    function insertButtons(hFig, hAxes,v)
+    function insertButtons(hFig, hAxes,v,currentvideo,i)
 
         % Play button with text Start/Pause/Continue
         uicontrol(hFig,'unit','pixel','style','pushbutton','string','Start',...
@@ -79,21 +90,31 @@ insertButtons(hFig, hAxes, v);
         uicontrol(hFig,'unit','pixel','style','pushbutton','string','Exit',...
                 'position',[100 10 80 65],'callback', ...
                 {@exitCallback,v,hFig});
+        
+        % Next button with text Next Video     
+        uicontrol(hFig,'unit','pixel','style','pushbutton','string','Next Video',...
+                'position',[190 10 80 65],'tag','PBNext','callback',...
+                {@nextCallback,v,hAxes,hFig,fileName});
+           
+        % Background button with text Save As Background    
+        uicontrol(hFig,'unit','pixel','style','pushbutton','string','Save As Background',...
+                'position',[280 10 120 65],'tag','PBBackground','callback',...
+                {@backgroundCallback,v,hAxes,hFig,currentvideo});
     end
+
 % PLAY BUTTON
-    function playCallback(hObject,~,v,hAxes,hFig)
+    function playCallback(hObject,~,v,hAxes,hFig)    
+
        try
             % Check the status of play button
             isTextStart = strcmp(hObject.String,'Start');
             isTextCont  = strcmp(hObject.String,'Continue');
+            
             if isTextStart
                % Two cases: (1) starting first time, or (2) restarting 
                % Start from first frame
-               %if isDone(v)
-               if v.hasFrame
-                   readFrame(v);
-                   hObject.String = 'Pause';
-                  %reset(v);
+               if ~v.hasFrame
+                   v.CurrentTime = 0;
                end
             end
             if (isTextStart || isTextCont)
@@ -101,61 +122,23 @@ insertButtons(hFig, hAxes, v);
             else
                 hObject.String = 'Continue';
             end
-%             shapeInserter = vision.ShapeInserter;
            
-            %while strcmp(hObject.String, 'Pause') && ~isDone(v)
             while strcmp(hObject.String, 'Pause') && v.hasFrame
                 pos = [314 237 148 141];
                 frame = readFrame(v);
                 
-                %rect = shapeInserter(frame,pos);
                 showFrameOnAxis(hAxes.axis1, frame);
-%                 roi = imrect();
-%                 wait(hAxes.axis1);
-                %createrectangle();
-              
-%                 waitforbuttonpress
-%                 point1 = get(gcf,'CurrentPoint') % button down detected
-%                 rect = [314 237 148 141]
-%                 [r2] = dragrect(rect)
-                
-                
-                % rect = rectangle('Position',pos,'Parent',hAxes.axis1,'BusyAction','cancel');
-                            
-                %while strcmp(hObject.String, 'Pause') && ~isDone(v)
 
-                %showFrameOnAxis(hAxes.axis1, rect);
-                %showFrameOnAxis(hAxes.axis1, frame);
-
-                %end
-                
-%                 if frame == 1:5
-                     %showFrameOnAxis(hAxes.axis1, frame);
-%                 elseif frame == 6
-%                     rect = imrect()
-%                     pos = getPosition(rect);
-%                 else 
-%                     rect = setPosition(rect,pos)
-%                     showFrameOnAxis(hAxes.axis1, frame);
-%                     pos = getPosition(rect);
-%                 end
-               
-                % [Y,Cb,Cr] = step(v);
-                % Display input video frame on axis
-                %showFrameOnAxis(hAxes.axis1, frame);
-                % rect = getrect
-%                 h = vision.ShapeInserter;
             end
             
             % When video reaches the end of file, display "Start" on the
-            % play button.
-            %if isDone(v)
+            % play button.            
             if ~v.hasFrame
                %rect = getrect 
                rect = imrect()
                % won't save position until you double click the rectangle
                wait(rect);  
-               pos = reshape(single(getPosition(rect)),1,length(getPosition(rect)))
+               pos = reshape(single(getPosition(rect)),1,length(getPosition(rect)));
         
                % Read file name, file date, and position of rectangle to text file
                name = string(v.name);
@@ -173,6 +156,7 @@ insertButtons(hFig, hAxes, v);
                
                delete(rect);
                hObject.String = 'Start';
+            
             end
             
        catch ME
@@ -182,8 +166,7 @@ insertButtons(hFig, hAxes, v);
            end
        end
     end
-
-
+% EXIT BUTTON
     function exitCallback(~,~,v,hFig)
         
         % Close the video file
@@ -192,7 +175,50 @@ insertButtons(hFig, hAxes, v);
         % Close the figure window
         close(hFig);
     end
- 
-displayEndOfDemoMessage(mfilename)
+
+% NEXT BUTTON
+    function nextCallback(hObject,~,v,hAxes,hFig,fileName)
+%         currentvideo = fileName{i+1};
+%         v = VideoReader(currentvideo);
+%         sval = get(hObject,'Value');
+%         data = get(hObject,'UserData');
+%         v = VideoReader(fileName{2});
+%         guidata(hObject, v);
+        i = i+1;
+        handles = guidata(hObject);
+        handles.Counter = handles.Counter+1;
+        % Read current text and convert it to a number.
+% currentCounterValue = str2double(get(handles.Counter, 'String'));
+% % Create a new string with the number being 1 more than the current number.
+% newString = sprintf('%d', int32(currentCounterValue +1));
+% % Send the new string to the text control.
+% set(handles.Counter, 'String', newString );
+
+        hObject.String = 'Saved';
+        guidata(hObject, handles);
+    % change background button from 'Saved' to 'Save as Background'
+    end
+
+% BACKGROUND BUTTON
+% will need to pass in current file name 
+    function backgroundCallback(hObject,~,v,hAxes,hFig,~)
+        
+        name = strsplit(v.name,'.avi');
+        name{2} = '.png';
+        fullname = strjoin(name,'');
+        backgroundFrame = readFrame(v);
+        path = '/Volumes/MyPassportforMac/BACKGROUNDS';
+        splitpath = strsplit(path,'/');
+        splitpath{end+1} = fullname;
+        fullpath = strjoin(splitpath,'/');
+        imwrite(backgroundFrame,fullpath,'png','WriteMode','append');
+        
+        hObject.String = 'Saved';
+    end
+
+
+% displayEndOfDemoMessage(mfilename)
+    
 end
+
 
