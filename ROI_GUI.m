@@ -165,9 +165,9 @@ function playCallback(playhandle,~,v,hAxes,handles)
     global Xi Yi Wi Ht;
     
     try              
-        v = VideoReader(schools{vidCount});
+        %v = VideoReader(schools{vidCount});
         
-        %disp(v.CurrentTime); 
+        disp(v.CurrentTime); 
         
         % Check the status of play button
         Play = strcmp(playhandle.String,'Play');
@@ -239,7 +239,6 @@ function playCallback(playhandle,~,v,hAxes,handles)
     end
     
 end
-
 
 
 % Button Callbacks
