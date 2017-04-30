@@ -1,5 +1,9 @@
 clear; clc;
 
+
+% DOES NOT INCLUDE FIRST 5 SCHOOLS!
+
+
 % all vids that didnt error out
 gfid = fopen('completedlist.txt');
 goodvids = textscan(gfid,'%s','Delimiter','\n');
