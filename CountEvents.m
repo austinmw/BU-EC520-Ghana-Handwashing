@@ -61,45 +61,43 @@ for i = 1%:length(filename) % particular school/date
 				bwdiff = bwdiff.*highvals.*notpitchblack;
 				threshold3 = 0.079; % percentage of white pixels
 				events(fnum) = sum(bwdiff(:)) > (threshold3*numel(bwdiff));
-				
 				%origwriteto = sprintf('./diffs/aOrig_%d.png',fnum);
 				%imwrite(frameROI,origwriteto);
 				%writeto = sprintf('./diffs/frame_%d.png',fnum);
 				%imwrite(bwdiff,writeto);
-
 				%fprintf('#%d:   event: %d\n', fnum, events(fnum));    
 			end
 			%imwrite(fullBackGray,'./diffs/FULLBLACKGRAY.png');
 			
-			
-			% TO ADD LATER:
-			% can make this better by also keeping track of how many
-			% 0's in between groupings of 1's and making sure that's above
-			% another threshold so it doesn't just represent a glitch
+			events = [events 0]; %#ok<AGROW>  
 			
 			% Count Events
 			EventCount = 0;
-			subcount = 0;
+			subcountones = 0;
+			subcountzeros = 0;
 			N = 5; % quarter second threshold
-			
+			M = 10;   
 			for e=1:length(events) % events is a binary array
-				if (events(e) == 1) && (subcount == 0)
-					subcount = 1;
+				if (events(e) == 1) && (subcountones == 0)
+					subcountones = 1;
+					subcountzeros = 0;
 				elseif events(e) == 1 
-					subcount = subcount + 1;
-				elseif (events(e) == 0) && (subcount > N)
+					subcountones = subcountones + 1;
+					subcountzeros = 0;
+				elseif (events(e) == 0) && (subcountzeros < M)
+					subcountzeros = subcountzeros + 1;    
+				elseif (events(e) == 0) && (subcountones > N)
 					EventCount = EventCount + 1;
-					subcount = 0;
-				elseif (events(e) == 0) && (subcount <= N)
-					subcount = 0;
+					subcountones = 0;
+					subcountzeros = subcountzeros + 1;
+				elseif (events(e) == 0) && (subcountones <= N)
+					subcountones = 0;
+					subcountzeros = subcountzeros + 1;
 				else
 					disp('Oops, should not get here!');                  
 				end
 			end
-			%if subcount > N % catch handwashing events at very end of vid
-			%    EventCount = EventCount + 1;
-			%end
-			
+   
 			% this is iffy because half the kids just wipe the soap
 			% rather than pick-up/put-down
 			EventCount = round(EventCount/2);
@@ -111,7 +109,7 @@ for i = 1%:length(filename) % particular school/date
 			end
 			
 			DayTotal = DayTotal + EventCount;
-			fprintf('%s: %d\n', vidnames{n}, EventCount);
+			fprintf('%2d: %s: %d\n', n, vidnames{n}, EventCount);
  
 			%{
 			threshold1 = 90;
@@ -150,6 +148,4 @@ sound(y); toc
 % doesn't sound as great but might help more than hurt by avoiding errors
 % - creating a list of manual counts and crossvalidating threshold values
 % to find the argmin's of the count differences
-
-
 
