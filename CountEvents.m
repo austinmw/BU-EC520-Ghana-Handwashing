@@ -7,7 +7,7 @@ posFile = fopen(ROIpath);
 [filename,ext,xmin,ymin,width,height] = textread(ROIpath,...
 											'%[^.] %s %d %d %d %d');                                     
 									 
-for i = 6%:length(filename) % particular school/date
+for i = 1%:length(filename) % particular school/date
 
 	splitSchoolandDate = strsplit(filename{i},{'_'});   
 	school = splitSchoolandDate(1);     
@@ -36,7 +36,7 @@ for i = 6%:length(filename) % particular school/date
 	else
 		
 		DayTotal = 0;
-		for n = 1:length(vidnames)  % for every video file of specific date
+		for n = 2%:length(vidnames)  % for every video file of specific date
 
 			fpath = strsplit(videoFiles,'*');
 			fpath = fpath{1};
@@ -53,22 +53,38 @@ for i = 6%:length(filename) % particular school/date
 				frameROI = frame(ymin(i):ymin(i)+height(i)-1,xmin(i):xmin(i)+width(i)+1,:);
 				notpitchblack = frameROI > 3; % ignore jet black rope
 				imdiff = imabsdiff(frameROI,fullBackGray);
-				threshold1 = 55; % max pixel intensity
+				threshold1 = 58; % max pixel intensity
 				highvals = frameROI < threshold1;
 				threshold2 = 40; % diff threshold
 				imdiff(imdiff<threshold2)=0;
 				bwdiff = imbinarize(imdiff);
 				bwdiff = bwdiff.*highvals.*notpitchblack;
-				threshold3 = 0.078; % percentage of white pixels
+				threshold3 = 0.125; % percentage of white pixels
 				events(fnum) = sum(bwdiff(:)) > (threshold3*numel(bwdiff));
 				%origwriteto = sprintf('./diffs/aOrig_%d.png',fnum);
 				%imwrite(frameROI,origwriteto);
 				%writeto = sprintf('./diffs/frame_%d.png',fnum);
 				%imwrite(bwdiff,writeto);
-				%fprintf('#%d:   event: %d\n', fnum, events(fnum));    
+				fprintf('#%d:   event: %d\n', fnum, events(fnum)); 
+				
 			end
 			%imwrite(fullBackGray,'./diffs/FULLBLACKGRAY.png');
 			
+			%{
+			v.CurrentTime = 0;
+			fnum=0;
+			while hasFrame(v) 
+				fnum=fnum+1;
+				frame = readFrame(v); % Grayscale ROI
+				if events(fnum) == 1
+					writename = strcat('/Volumes/Seagate/SAMPLING_DIR/EventFrames/',school{1},'_',date{1},'_',num2str(fnum),'.png');
+					frameROI = frame(ymin(i):ymin(i)+height(i)-1,xmin(i):xmin(i)+width(i)+1,:);
+					imwrite(frameROI,writename);
+				end    
+				
+			end
+			%}
+	
 			events = [events 0]; %#ok<AGROW>  
 			
 			% Count Events
@@ -100,7 +116,7 @@ for i = 6%:length(filename) % particular school/date
    
 			% this is iffy because half the kids just wipe the soap
 			% rather than pick-up/put-down
-			EventCount = round(EventCount/1.5);
+			%EventCount = round(EventCount/2);
 			
 			% bad count: too high to be realistic, probably very dark video
 			if EventCount > 4 
@@ -137,8 +153,9 @@ for i = 6%:length(filename) % particular school/date
 end
 
 % sound to signify code has finished running
-load train.mat;
-sound(y); toc
+%load train.mat;
+%sound(y); 
+toc
 
 % MORE THINGS TO TRY OUT:
 % - splitting it over two sections, might cause problems without some
@@ -147,4 +164,5 @@ sound(y); toc
 % doesn't sound as great but might help more than hurt by avoiding errors
 % - creating a list of manual counts and crossvalidating threshold values
 % to find the argmin's of the count differences
+% Create video full of event frames
 
