@@ -100,7 +100,6 @@ for i = 6%:length(filename) % particular school/date
    
 			% this is iffy because half the kids just wipe the soap
 			% rather than pick-up/put-down
-			disp(EventCount);
 			EventCount = round(EventCount/1.5);
 			
 			% bad count: too high to be realistic, probably very dark video
