@@ -7,7 +7,7 @@ posFile = fopen(ROIpath);
 [filename,ext,xmin,ymin,width,height] = textread(ROIpath,...
 											'%[^.] %s %d %d %d %d');                                     
 									 
-for i = 1%:length(filename) % particular school/date
+for i = 6%:length(filename) % particular school/date
 
 	splitSchoolandDate = strsplit(filename{i},{'_'});   
 	school = splitSchoolandDate(1);     
@@ -59,7 +59,7 @@ for i = 1%:length(filename) % particular school/date
 				imdiff(imdiff<threshold2)=0;
 				bwdiff = imbinarize(imdiff);
 				bwdiff = bwdiff.*highvals.*notpitchblack;
-				threshold3 = 0.079; % percentage of white pixels
+				threshold3 = 0.078; % percentage of white pixels
 				events(fnum) = sum(bwdiff(:)) > (threshold3*numel(bwdiff));
 				%origwriteto = sprintf('./diffs/aOrig_%d.png',fnum);
 				%imwrite(frameROI,origwriteto);
@@ -75,7 +75,7 @@ for i = 1%:length(filename) % particular school/date
 			EventCount = 0;
 			subcountones = 0;
 			subcountzeros = 0;
-			N = 5; % quarter second threshold
+			N = 6; 
 			M = 10;   
 			for e=1:length(events) % events is a binary array
 				if (events(e) == 1) && (subcountones == 0)
@@ -100,11 +100,11 @@ for i = 1%:length(filename) % particular school/date
    
 			% this is iffy because half the kids just wipe the soap
 			% rather than pick-up/put-down
-			EventCount = round(EventCount/2);
+			disp(EventCount);
+			EventCount = round(EventCount/1.5);
 			
 			% bad count: too high to be realistic, probably very dark video
-			% may change this to 3 or 4
-			if EventCount > 2 
+			if EventCount > 4 
 				EventCount = 0;
 			end
 			
